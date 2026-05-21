@@ -14,3 +14,36 @@ body {
 canvas {
   display: block;
 }
+
+#question-overlay {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(900px, 92vw);
+  box-sizing: border-box;
+  /* 木枠とチェーンが文字に被らないよう内側に余白を取る。
+     縦方向は背景画像の縦横比に近づける狙いで広めに取る。 */
+  padding: 96px 96px;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", "Meiryo",
+    sans-serif;
+  font-weight: 700;
+  font-size: clamp(18px, 2.4vw, 28px);
+  line-height: 1.4;
+  color: #f7e6c4;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.8);
+  background-image: url("/question_texture.png");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#question-overlay:empty {
+  display: none;
+}

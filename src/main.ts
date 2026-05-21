@@ -47,6 +47,7 @@ scene.add(arches)
 scene.add(torches)
 scene.add(dust)
 
+
 // カートはカメラに追従させるため子にする。camera 自身も scene 下にないと子が描画されない。
 const cart = new MineCart()
 cameraRig.camera.add(cart)
@@ -61,9 +62,12 @@ const game = new GameController()
 const keyboard = new KeyboardInput(game)
 keyboard.attach()
 
+// 画面上部の HTML オーバーレイに問題文を出す。問題提示はトンネル内ではなくここで完結させる。
+const questionOverlay = document.querySelector<HTMLDivElement>('#question-overlay')!
 loadQuizData()
   .then((questions) => {
     console.table(questions)
+    questionOverlay.textContent = questions[0].question
   })
   .catch((err) => {
     console.error(err)
