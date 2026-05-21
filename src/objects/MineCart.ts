@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { createWoodTextures } from '../textures/procedural'
 
 // 一人称視点で常に画面手前に映るトロッコの縁。
 // カメラの子オブジェクトとして取り付け、カメラ空間での相対座標で配置する。
@@ -44,8 +45,12 @@ export class MineCart extends THREE.Group {
   constructor() {
     super()
 
+    // カートのパーツは小さい (リム厚 0.11m, 柱 0.16m など) ので、繰り返しは控えめに。
+    const { map, bumpMap } = createWoodTextures(2, 2)
     const material = new THREE.MeshStandardMaterial({
-      color: 0x6b4423,
+      map,
+      bumpMap,
+      bumpScale: 0.01,
       roughness: 0.95,
       // 真っ暗な区間で完全に消えないための最低限のセルフ発光のみ。
       // 主な陰影は下で追加する内部 PointLight に任せる。

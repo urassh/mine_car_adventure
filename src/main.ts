@@ -35,8 +35,9 @@ renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 app.appendChild(renderer.domElement)
 
-// 廃坑の暗がり。環境光はほぼゼロにして、実質的に松明だけが光源になる
-const ambient = new THREE.AmbientLight(0xffffff, 0.04)
+// 廃坑の暗がり。松明 (暖色 0xffaa55) と馴染むよう、環境光もごく薄い暖色寄りに。
+// 強度は「松明の届かない壁面が真っ黒すぎず、奥行きがうっすら見える」程度に抑える。
+const ambient = new THREE.AmbientLight(0xffcfa3, 0.08)
 scene.add(ambient)
 
 const rails = new Rails()

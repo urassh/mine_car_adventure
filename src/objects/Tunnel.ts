@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { FORWARD_SPEED, RECYCLE_Z } from '../constants'
+import { createRockTextures } from '../textures/procedural'
 
 // 横倒し円筒の寸法
 // カメラ (y=1.4) を円筒のほぼ中心に置くことで、壁/天井に近づき
@@ -33,8 +34,13 @@ export class Tunnel extends THREE.Group {
     // 軸を Y → Z に倒す
     geometry.rotateX(Math.PI / 2)
 
+    // 内周 2π*1.7 ≒ 10.7m、長さ 100m。
+    // 円周方向に 6 タイル (≒ 1.78m/タイル)、長さ方向に 50 タイル (= 2m/タイル) で岩肌を貼る。
+    const { map, bumpMap } = createRockTextures(6, 50)
     const material = new THREE.MeshStandardMaterial({
-      color: 0x3a2e22,
+      map,
+      bumpMap,
+      bumpScale: 0.6,
       roughness: 0.95,
       side: THREE.BackSide,
     })

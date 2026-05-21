@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { FORWARD_SPEED, RECYCLE_Z } from '../constants'
+import { createWoodTextures } from '../textures/procedural'
 
 // sample2 の組み木をイメージした六角アーチ形:
 //
@@ -65,8 +66,12 @@ export class Arches extends THREE.Group {
     this.chainLength = ARCH_SPACING * ARCH_COUNT
 
     // マテリアルは共有でよい (色は変えない)
+    // 柱長 ~2.2m、太さ 0.18m。長辺方向に 2 タイルで木目密度をほどよく調整。
+    const { map, bumpMap } = createWoodTextures(1, 2)
     const material = new THREE.MeshStandardMaterial({
-      color: 0x6b4423,
+      map,
+      bumpMap,
+      bumpScale: 0.02,
       roughness: 0.95,
     })
 

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { FORWARD_SPEED, RECYCLE_Z } from '../constants'
+import { createMetalTextures } from '../textures/procedural'
 import { TIE_HEIGHT } from './Ties'
 
 // レール 1 本の寸法とチェーン構成
@@ -21,8 +22,12 @@ export class Rails extends THREE.Group {
     this.chainLength = RAIL_SEGMENT_LENGTH * RAIL_SEGMENT_COUNT
 
     const geometry = new THREE.BoxGeometry(RAIL_WIDTH, RAIL_HEIGHT, RAIL_SEGMENT_LENGTH)
+    // セグメント長 100m。レール長方向に 50 タイル (= 2m/タイル) で擦れ模様を流す。
+    const { map, bumpMap } = createMetalTextures(1, 50)
     const material = new THREE.MeshStandardMaterial({
-      color: 0x8a7a5a,
+      map,
+      bumpMap,
+      bumpScale: 0.005,
       metalness: 0.6,
       roughness: 0.5,
     })

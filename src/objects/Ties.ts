@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { FORWARD_SPEED, RECYCLE_Z } from '../constants'
+import { createWoodTextures } from '../textures/procedural'
 
 // 枕木の寸法・配置 (他オブジェクトから参照される可能性があるので export)
 export const TIE_LENGTH = 1.6 // レールに直交する方向の長さ (X 方向)
@@ -19,8 +20,12 @@ export class Ties extends THREE.Group {
     this.chainLength = TIE_SPACING * TIE_COUNT
 
     const geometry = new THREE.BoxGeometry(TIE_LENGTH, TIE_HEIGHT, TIE_WIDTH)
+    // 枕木は長辺 1.6m。長辺方向に 8 タイル並べる (≒ 0.2m/タイル) と木目が密に見える。
+    const { map, bumpMap } = createWoodTextures(8, 1)
     const material = new THREE.MeshStandardMaterial({
-      color: 0x4a2f18,
+      map,
+      bumpMap,
+      bumpScale: 0.02,
       roughness: 0.95,
     })
 
