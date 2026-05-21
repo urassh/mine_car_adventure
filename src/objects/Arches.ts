@@ -12,20 +12,26 @@ import { FORWARD_SPEED, RECYCLE_Z } from '../constants'
 // すべて Box の角材で構成し、傾きをつけて配置。
 
 // 角材の太さ (角断面)
-const WOOD_THICKNESS = 0.18
+export const WOOD_THICKNESS = 0.18
 
 // 側面柱の端点
-const POST_BOTTOM_X = 0.7 // 足元 (トンネル壁 ±0.8 のすぐ内側)
-const POST_TOP_X = 0.4 // 頂部はやや内側に寄る (上窄まり)
-const POST_BOTTOM_Y = 0
-const POST_TOP_Y = 2.1
+export const POST_BOTTOM_X = 0.7 // 足元 (トンネル壁 ±0.8 のすぐ内側)
+export const POST_TOP_X = 0.4 // 頂部はやや内側に寄る (上窄まり)
+export const POST_BOTTOM_Y = 0
+export const POST_TOP_Y = 2.1
 
 // 屋根の頂点 (中央)
 const APEX_Y = 2.4
 
 // 配置 (Z 方向)
-const ARCH_SPACING = 4
+export const ARCH_SPACING = 4
 const ARCH_COUNT = 50
+
+// 指定の高さ y における側面柱中心の |x|。柱に物を付けるとき用。
+export function postCenterXAt(y: number): number {
+  const t = (y - POST_BOTTOM_Y) / (POST_TOP_Y - POST_BOTTOM_Y)
+  return POST_BOTTOM_X + (POST_TOP_X - POST_BOTTOM_X) * t
+}
 
 // --- 派生値 (端点から角度・長さ・中心を計算) ---
 const POST_LENGTH = Math.hypot(POST_BOTTOM_X - POST_TOP_X, POST_TOP_Y - POST_BOTTOM_Y)
