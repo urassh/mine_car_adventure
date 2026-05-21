@@ -15,13 +15,14 @@ import { FORWARD_SPEED, RECYCLE_Z } from '../constants'
 export const WOOD_THICKNESS = 0.18
 
 // 側面柱の端点
-export const POST_BOTTOM_X = 0.7 // 足元 (トンネル壁 ±0.8 のすぐ内側)
-export const POST_TOP_X = 0.4 // 頂部はやや内側に寄る (上窄まり)
+// 足元はトンネル壁 (y=0 で ±0.8) のすぐ内側に寄せる
+export const POST_BOTTOM_X = 0.78
+export const POST_TOP_X = 0.5 // 頂部はやや内側に寄る (上窄まり)
 export const POST_BOTTOM_Y = 0
 export const POST_TOP_Y = 2.1
 
 // 屋根の頂点 (中央)
-const APEX_Y = 2.4
+const APEX_Y = 2.5
 
 // 配置 (Z 方向)
 export const ARCH_SPACING = 4

@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import './style.css'
 import { CAMERA_HEIGHT, CAMERA_LOOK_AHEAD } from './constants'
 import { Arches } from './objects/Arches'
+import { MineCart } from './objects/MineCart'
 import { Rails } from './objects/Rails'
 import { Ties } from './objects/Ties'
 import { Torches } from './objects/Torches'
@@ -40,6 +41,12 @@ scene.add(ties)
 scene.add(tunnel)
 scene.add(arches)
 scene.add(torches)
+
+// 一人称トロッコの縁。カメラに追従させたいのでカメラの子にする。
+// 子要素の描画にはカメラ自身がシーン階層下にある必要があるため scene.add(camera) も入れる。
+const cart = new MineCart()
+camera.add(cart)
+scene.add(camera)
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight
