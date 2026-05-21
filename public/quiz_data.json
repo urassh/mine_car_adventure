@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "question": "富士山の標高はおよそ何メートル？",
+    "choices": [
+      { "label": "3776 m", "direction": "left", "isCorrect": true },
+      { "label": "2980 m", "direction": "right", "isCorrect": false }
+    ],
+    "explanation": "富士山の標高は 3776 m で、日本一高い山。"
+  },
+  {
+    "id": 2,
+    "question": "光の速さは秒速およそ何 km？",
+    "choices": [
+      { "label": "30 万 km", "direction": "left", "isCorrect": true },
+      { "label": "3 万 km", "direction": "right", "isCorrect": false }
+    ],
+    "explanation": "真空中の光速は約 299,792 km/s、約 30 万 km/s と覚える。"
+  },
+  {
+    "id": 3,
+    "question": "オーストラリアの首都は？",
+    "choices": [
+      { "label": "シドニー", "direction": "left", "isCorrect": false },
+      { "label": "キャンベラ", "direction": "right", "isCorrect": true }
+    ],
+    "explanation": "最大都市はシドニーだが、首都はキャンベラ。シドニーとメルボルンの対立を避けて中間に新設された都市。"
+  }
+]

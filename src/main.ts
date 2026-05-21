@@ -11,6 +11,7 @@ import { Rails } from './objects/Rails'
 import { Ties } from './objects/Ties'
 import { Torches } from './objects/Torches'
 import { Tunnel } from './objects/Tunnel'
+import { loadQuizData } from './quiz/QuizData'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
@@ -59,6 +60,14 @@ window.addEventListener('resize', () => {
 const game = new GameController()
 const keyboard = new KeyboardInput(game)
 keyboard.attach()
+
+loadQuizData()
+  .then((questions) => {
+    console.table(questions)
+  })
+  .catch((err) => {
+    console.error(err)
+  })
 
 // 分岐に乗るとき、本線とカメラを同じだけ横シフトする。分岐ピース自体は動かさないので
 // 視野内で横に流れて見え、「片腕に乗って反対側が外れる」効果になる。
