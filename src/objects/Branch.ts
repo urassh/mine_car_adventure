@@ -29,7 +29,7 @@ const RAIL_WIDTH = 0.08
 const RAIL_HEIGHT = 0.08
 const RAIL_GAUGE = 1.0
 
-const SPAWN_Z = -60
+const SPAWN_Z = -36
 const DESPAWN_Z = BRANCH_LENGTH + 6
 
 const railY = TIE_HEIGHT + RAIL_HEIGHT / 2
