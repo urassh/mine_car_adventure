@@ -69,7 +69,9 @@ window.addEventListener('resize', () => {
 })
 
 // --- 左右分岐 ---
-// 矢印キーで Y 字分岐ピース (Branch) を奥にスポーンする。
+// 操作:
+//   左右矢印 … トロッコ (カート) を左右に傾ける (tilt = -1 / +1)
+//   Space     … 現在の傾きの方向に Y 字分岐ピース (Branch) を奥にスポーン
 // 分岐ピース自身はシーン直下に置き、本線側 (rails/ties/tunnel/arches/torches/dust) と
 // カメラの両方を同じ量だけ横シフトする。
 //   → 本線とカメラの相対位置は変わらないので本線は常にカメラ直下にあるように見え、
@@ -79,6 +81,16 @@ window.addEventListener('resize', () => {
 let activeBranch: Branch | null = null
 let branchSide: 1 | -1 = 1
 let baseLateral = 0
+
+// カートの傾き状態。-1=左, 0=中立, +1=右。
+// tilt が目標値、tiltCurrent は描画用にイージングした実値 (rad)。
+let tilt: -1 | 0 | 1 = 0
+let tiltCurrent = 0
+// 最大ロール角 (rad)。0.25 ≒ 14°。カメラ自体をロールするので、
+// 視界全体と (子として追従する) カートが一緒に傾いて、明確に読み取れる。
+const TILT_ANGLE = 0.25
+// 1秒あたりの追従レート (大きいほどキビキビ)。
+const TILT_LERP = 8
 
 const laterallyShifted = [rails, ties, tunnel, arches, torches, dust]
 
@@ -98,14 +110,17 @@ function spawnBranch(side: 1 | -1) {
 }
 
 window.addEventListener('keydown', (e) => {
-  // 矢印キーはブラウザが既定でページスクロールに使うため、
+  // 矢印キー/Space はブラウザが既定でページスクロールに使うため、
   // 受け取った時点で preventDefault しておかないとフォーカス状況によって反応が消える。
   if (e.key === 'ArrowRight') {
     e.preventDefault()
-    spawnBranch(1)
+    tilt = 1
   } else if (e.key === 'ArrowLeft') {
     e.preventDefault()
-    spawnBranch(-1)
+    tilt = -1
+  } else if (e.code === 'Space') {
+    e.preventDefault()
+    if (tilt !== 0) spawnBranch(tilt)
   }
 })
 
@@ -143,11 +158,22 @@ renderer.setAnimationLoop((time) => {
       scene.remove(activeBranch)
       activeBranch = null
       tunnel.clipPlane.constant = 10000
+      // 新しい中央線に乗ったので、自然に水平へ戻す
+      tilt = 0
     }
   }
   for (const obj of laterallyShifted) {
     obj.position.x = lateral
   }
+
+  // 傾きを camera.rotation.z にイージング適用。
+  // カメラ自体をロールすることで視界全体が傾き、子であるカートも一緒に回って
+  // 「トロッコごと身体を傾けた」感覚になる (cart 単独のロールだと視界が水平な
+  // ままで傾きが読み取りにくかった)。
+  // tilt = +1 (右) で「右に身体を傾ける = 視界が左にロール」よう符号は負。
+  const targetRoll = -tilt * TILT_ANGLE
+  tiltCurrent += (targetRoll - tiltCurrent) * (1 - Math.exp(-TILT_LERP * dt))
+  camera.rotation.z = tiltCurrent
 
   // カメラの微小な揺れ。
   // 主周波数 + 非整数倍のサブ周波数を重ねて、規則的な往復に見えないようにする。
