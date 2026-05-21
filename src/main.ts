@@ -34,6 +34,8 @@ camera.lookAt(0, CAMERA_HEIGHT, -CAMERA_LOOK_AHEAD)
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
+// Tunnel が material.clippingPlanes で前方を切り落とすために必要
+renderer.localClippingEnabled = true
 app.appendChild(renderer.domElement)
 
 // 廃坑の暗がり。松明 (暖色 0xffaa55) と馴染むよう、環境光もごく薄い暖色寄りに。
@@ -132,10 +134,15 @@ renderer.setAnimationLoop((time) => {
       const t = Math.min(z / BRANCH_TRAVERSE, 1)
       lateral = baseLateral + branchSide * BRANCH_OFFSET * smoothstep(t)
     }
+    // 本線トンネルを分岐ピースの合流端より奥で打ち切る。
+    // 円筒の壁が分岐の進行方向を遮るのを防ぎ、Y 字に「自然に分かれて見える」ようにする。
+    // 通過後 (発散端を抜けた後) は活性ブランチが despawn されて else 側に落ち、本線が復帰する。
+    tunnel.clipPlane.constant = -z
     if (activeBranch.done) {
       baseLateral += branchSide * BRANCH_OFFSET
       scene.remove(activeBranch)
       activeBranch = null
+      tunnel.clipPlane.constant = 10000
     }
   }
   for (const obj of laterallyShifted) {

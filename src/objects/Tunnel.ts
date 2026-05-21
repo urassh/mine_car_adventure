@@ -18,6 +18,10 @@ const TUNNEL_RADIAL_SEGMENTS = 32
 export class Tunnel extends THREE.Group {
   private readonly segments: THREE.Mesh[] = []
   private readonly chainLength: number
+  // 前方クリップ平面 (ワールド座標)。法線 (0,0,1) で「z > -constant」側を残す。
+  // 分岐ピース合流端より奥の本線を切り捨てる用途で main.ts が constant を毎フレーム更新する。
+  // 初期値は遥か奥に置いてあり、無効化と等価。
+  readonly clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 10000)
 
   constructor() {
     super()
@@ -44,6 +48,7 @@ export class Tunnel extends THREE.Group {
       bumpScale: 0.6,
       roughness: 0.95,
       side: THREE.BackSide,
+      clippingPlanes: [this.clipPlane],
     })
 
     for (let i = 0; i < TUNNEL_SEGMENT_COUNT; i++) {
