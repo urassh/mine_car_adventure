@@ -9,6 +9,7 @@ import {
   CAMERA_SHAKE_FREQ_Y,
 } from './constants'
 import { Arches } from './objects/Arches'
+import { Branch, BRANCH_OFFSET, BRANCH_TRAVERSE } from './objects/Branch'
 import { Dust } from './objects/Dust'
 import { MineCart } from './objects/MineCart'
 import { Rails } from './objects/Rails'
@@ -65,6 +66,47 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight)
 })
 
+// --- 左右分岐 ---
+// 矢印キーで Y 字分岐ピース (Branch) を奥にスポーンする。
+// 分岐ピース自身はシーン直下に置き、本線側 (rails/ties/tunnel/arches/torches/dust) と
+// カメラの両方を同じ量だけ横シフトする。
+//   → 本線とカメラの相対位置は変わらないので本線は常にカメラ直下にあるように見え、
+//     シフトされない Branch ピースだけがカメラ視野内で横に流れる
+//     = 「選んだ腕に乗ってもう一方が反対側に外れていく」視覚効果になる。
+// 分岐通過後は baseLateral に焼き込み、それ以降を新たな中央線とする。
+let activeBranch: Branch | null = null
+let branchSide: 1 | -1 = 1
+let baseLateral = 0
+
+const laterallyShifted = [rails, ties, tunnel, arches, torches, dust]
+
+const smoothstep = (t: number): number => {
+  const x = Math.max(0, Math.min(1, t))
+  return x * x * (3 - 2 * x)
+}
+
+function spawnBranch(side: 1 | -1) {
+  if (activeBranch) return
+  branchSide = side
+  const branch = new Branch()
+  // 現在の中央線上にスポーンさせる (本線と同じ横位置から Y が始まる)
+  branch.position.x = baseLateral
+  scene.add(branch)
+  activeBranch = branch
+}
+
+window.addEventListener('keydown', (e) => {
+  // 矢印キーはブラウザが既定でページスクロールに使うため、
+  // 受け取った時点で preventDefault しておかないとフォーカス状況によって反応が消える。
+  if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    spawnBranch(1)
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    spawnBranch(-1)
+  }
+})
+
 const TWO_PI = Math.PI * 2
 
 let prevTime = 0
@@ -79,6 +121,27 @@ renderer.setAnimationLoop((time) => {
   torches.update(dt)
   dust.update(dt)
 
+  // 分岐ピースの進行と横シフト量の決定。
+  // position.z は 0 (合流端がカメラに到達) → BRANCH_TRAVERSE (発散端がカメラに到達) と進み、
+  // この区間で smoothstep 補間して baseLateral → baseLateral + side*BRANCH_OFFSET に推移させる。
+  let lateral = baseLateral
+  if (activeBranch) {
+    activeBranch.update(dt)
+    const z = activeBranch.position.z
+    if (z >= 0) {
+      const t = Math.min(z / BRANCH_TRAVERSE, 1)
+      lateral = baseLateral + branchSide * BRANCH_OFFSET * smoothstep(t)
+    }
+    if (activeBranch.done) {
+      baseLateral += branchSide * BRANCH_OFFSET
+      scene.remove(activeBranch)
+      activeBranch = null
+    }
+  }
+  for (const obj of laterallyShifted) {
+    obj.position.x = lateral
+  }
+
   // カメラの微小な揺れ。
   // 主周波数 + 非整数倍のサブ周波数を重ねて、規則的な往復に見えないようにする。
   // x は左右、y は上下。位相をずらして両軸の最大値が同時に来るのを避ける。
@@ -89,7 +152,7 @@ renderer.setAnimationLoop((time) => {
   const shakeY =
     Math.sin(t * CAMERA_SHAKE_FREQ_Y * TWO_PI + 0.7) * CAMERA_SHAKE_AMP_Y +
     Math.cos(t * CAMERA_SHAKE_FREQ_Y * 1.3 * TWO_PI) * CAMERA_SHAKE_AMP_Y * 0.5
-  camera.position.x = shakeX
+  camera.position.x = shakeX + lateral
   camera.position.y = CAMERA_HEIGHT + shakeY
 
   renderer.render(scene, camera)

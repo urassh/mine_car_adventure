@@ -4,9 +4,10 @@ import { createRockTextures } from '../textures/procedural'
 
 // 横倒し円筒の寸法
 // カメラ (y=1.4) を円筒のほぼ中心に置くことで、壁/天井に近づき
-// トンネルに「包まれてる」感じを出す
-const TUNNEL_RADIUS = 1.7
-const TUNNEL_CENTER_Y = 1.5 // 床: -0.2 (レール直下), 天井: 3.2
+// トンネルに「包まれてる」感じを出す。
+// 分岐トンネル (Branch.ts) でも同じ太さ・高さ・マテリアルを使いたいので外に出す。
+export const TUNNEL_RADIUS = 1.7
+export const TUNNEL_CENTER_Y = 1.5 // 床: -0.2 (レール直下), 天井: 3.2
 const TUNNEL_SEGMENT_LENGTH = 100
 const TUNNEL_SEGMENT_COUNT = 2 // >=2 でリサイクル可
 const TUNNEL_RADIAL_SEGMENTS = 32
