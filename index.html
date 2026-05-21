@@ -8,7 +8,25 @@
   </head>
   <body>
     <div id="app"></div>
+    <div id="score-overlay"></div>
     <div id="question-overlay"></div>
+    <div id="countdown-overlay"></div>
+    <div id="result-overlay">
+      <div class="result-verdict"></div>
+      <div class="result-explanation"></div>
+    </div>
+    <div id="choices-overlay">
+      <div class="choice" data-direction="left">
+        <div class="choice-frame">
+          <div class="choice-label"></div>
+        </div>
+      </div>
+      <div class="choice" data-direction="right">
+        <div class="choice-frame">
+          <div class="choice-label"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
