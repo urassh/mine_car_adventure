@@ -9,6 +9,7 @@ import {
   CAMERA_SHAKE_FREQ_Y,
 } from './constants'
 import { Arches } from './objects/Arches'
+import { Dust } from './objects/Dust'
 import { MineCart } from './objects/MineCart'
 import { Rails } from './objects/Rails'
 import { Ties } from './objects/Ties'
@@ -43,11 +44,13 @@ const ties = new Ties()
 const tunnel = new Tunnel()
 const arches = new Arches()
 const torches = new Torches()
+const dust = new Dust()
 scene.add(rails)
 scene.add(ties)
 scene.add(tunnel)
 scene.add(arches)
 scene.add(torches)
+scene.add(dust)
 
 // 一人称トロッコの縁。カメラに追従させたいのでカメラの子にする。
 // 子要素の描画にはカメラ自身がシーン階層下にある必要があるため scene.add(camera) も入れる。
@@ -73,6 +76,7 @@ renderer.setAnimationLoop((time) => {
   tunnel.update(dt)
   arches.update(dt)
   torches.update(dt)
+  dust.update(dt)
 
   // カメラの微小な揺れ。
   // 主周波数 + 非整数倍のサブ周波数を重ねて、規則的な往復に見えないようにする。
