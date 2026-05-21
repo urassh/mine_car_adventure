@@ -12,6 +12,9 @@ const TUNNEL_SEGMENT_LENGTH = 100
 const TUNNEL_SEGMENT_COUNT = 2 // >=2 でリサイクル可
 const TUNNEL_RADIAL_SEGMENTS = 32
 
+// 「クリップしない」を表す十分大きな値。constant が大きいほど切り捨て面が遠ざかる。
+const CLIP_DISABLED = 10000
+
 // 廃坑のトンネル壁 + 天井。
 // 円筒を Z 軸方向に寝かせて内側だけを描画 (BackSide)。
 // レール同様、セグメントをチェーンさせてカメラ後方を抜けたら奥に戻す。
@@ -19,9 +22,7 @@ export class Tunnel extends THREE.Group {
   private readonly segments: THREE.Mesh[] = []
   private readonly chainLength: number
   // 前方クリップ平面 (ワールド座標)。法線 (0,0,1) で「z > -constant」側を残す。
-  // 分岐ピース合流端より奥の本線を切り捨てる用途で main.ts が constant を毎フレーム更新する。
-  // 初期値は遥か奥に置いてあり、無効化と等価。
-  readonly clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 10000)
+  private readonly clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), CLIP_DISABLED)
 
   constructor() {
     super()
@@ -61,6 +62,15 @@ export class Tunnel extends THREE.Group {
       this.add(mesh)
       this.segments.push(mesh)
     }
+  }
+
+  // 分岐ピース合流端 (=branch.z) より奥の本線を切り捨て、Y 字に自然に分かれて見せる。
+  setClip(z: number) {
+    this.clipPlane.constant = -z
+  }
+
+  clearClip() {
+    this.clipPlane.constant = CLIP_DISABLED
   }
 
   update(dt: number) {

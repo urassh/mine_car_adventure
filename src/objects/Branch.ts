@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { FORWARD_SPEED } from '../constants'
 import { createMetalTextures, createRockTextures } from '../textures/procedural'
 import { TIE_HEIGHT } from './Ties'
 import { TUNNEL_CENTER_Y, TUNNEL_RADIUS } from './Tunnel'
@@ -28,9 +27,6 @@ export const BRANCH_TRAVERSE = BRANCH_LENGTH
 const RAIL_WIDTH = 0.08
 const RAIL_HEIGHT = 0.08
 const RAIL_GAUGE = 1.0
-
-const SPAWN_Z = -36
-const DESPAWN_Z = BRANCH_LENGTH + 6
 
 const railY = TIE_HEIGHT + RAIL_HEIGHT / 2
 
@@ -129,8 +125,6 @@ function buildBranchTunnelGeometry(
 }
 
 export class Branch extends THREE.Group {
-  done = false
-
   constructor() {
     super()
 
@@ -182,14 +176,5 @@ export class Branch extends THREE.Group {
     })
     const tunnel = new THREE.Mesh(geom, tunnelMaterial)
     this.add(tunnel)
-
-    this.position.set(0, 0, SPAWN_Z)
-  }
-
-  update(dt: number) {
-    this.position.z += FORWARD_SPEED * dt
-    if (this.position.z > DESPAWN_Z) {
-      this.done = true
-    }
   }
 }

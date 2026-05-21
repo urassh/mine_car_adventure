@@ -1,15 +1,10 @@
 import * as THREE from 'three'
 import './style.css'
-import {
-  CAMERA_HEIGHT,
-  CAMERA_LOOK_AHEAD,
-  CAMERA_SHAKE_AMP_X,
-  CAMERA_SHAKE_AMP_Y,
-  CAMERA_SHAKE_FREQ_X,
-  CAMERA_SHAKE_FREQ_Y,
-} from './constants'
+import { GameController } from './controllers/GameController'
+import { KeyboardInput } from './controllers/KeyboardInput'
 import { Arches } from './objects/Arches'
-import { Branch, BRANCH_OFFSET, BRANCH_TRAVERSE } from './objects/Branch'
+import { Branch } from './objects/Branch'
+import { CameraRig } from './objects/CameraRig'
 import { Dust } from './objects/Dust'
 import { MineCart } from './objects/MineCart'
 import { Rails } from './objects/Rails'
@@ -19,27 +14,22 @@ import { Tunnel } from './objects/Tunnel'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
-// 闇に溶ける背景色。フォグの色と合わせる
 const DARK = 0x050505
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(DARK)
-// 指数フォグで遠景を完全に闇に。ループのつなぎ目もこれで隠れる
+// 指数フォグで遠景を闇に。ループのつなぎ目もこれで隠れる。
 scene.fog = new THREE.FogExp2(DARK, 0.07)
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-camera.position.set(0, CAMERA_HEIGHT, 0)
-camera.lookAt(0, CAMERA_HEIGHT, -CAMERA_LOOK_AHEAD)
+const cameraRig = new CameraRig()
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
-// Tunnel が material.clippingPlanes で前方を切り落とすために必要
+// Tunnel が clippingPlanes で前方を切り落とすのに必要。
 renderer.localClippingEnabled = true
 app.appendChild(renderer.domElement)
 
-// 廃坑の暗がり。松明 (暖色 0xffaa55) と馴染むよう、環境光もごく薄い暖色寄りに。
-// 強度は「松明の届かない壁面が真っ黒すぎず、奥行きがうっすら見える」程度に抑える。
 const ambient = new THREE.AmbientLight(0xffcfa3, 0.15)
 scene.add(ambient)
 
@@ -56,81 +46,31 @@ scene.add(arches)
 scene.add(torches)
 scene.add(dust)
 
-// 一人称トロッコの縁。カメラに追従させたいのでカメラの子にする。
-// 子要素の描画にはカメラ自身がシーン階層下にある必要があるため scene.add(camera) も入れる。
+// カートはカメラに追従させるため子にする。camera 自身も scene 下にないと子が描画されない。
 const cart = new MineCart()
-camera.add(cart)
-scene.add(camera)
+cameraRig.camera.add(cart)
+scene.add(cameraRig.camera)
 
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight
-  camera.updateProjectionMatrix()
+  cameraRig.resize()
   renderer.setSize(window.innerWidth, window.innerHeight)
 })
 
-// --- 左右分岐 ---
-// 操作:
-//   左右矢印 … トロッコ (カート) を左右に傾ける (tilt = -1 / +1)
-//   Space     … 現在の傾きの方向に Y 字分岐ピース (Branch) を奥にスポーン
-// 分岐ピース自身はシーン直下に置き、本線側 (rails/ties/tunnel/arches/torches/dust) と
-// カメラの両方を同じ量だけ横シフトする。
-//   → 本線とカメラの相対位置は変わらないので本線は常にカメラ直下にあるように見え、
-//     シフトされない Branch ピースだけがカメラ視野内で横に流れる
-//     = 「選んだ腕に乗ってもう一方が反対側に外れていく」視覚効果になる。
-// 分岐通過後は baseLateral に焼き込み、それ以降を新たな中央線とする。
-let activeBranch: Branch | null = null
-let branchSide: 1 | -1 = 1
-let baseLateral = 0
+const game = new GameController()
+const keyboard = new KeyboardInput(game)
+keyboard.attach()
 
-// カートの傾き状態。-1=左, 0=中立, +1=右。
-// tilt が目標値、tiltCurrent は描画用にイージングした実値 (rad)。
-let tilt: -1 | 0 | 1 = 0
-let tiltCurrent = 0
-// 最大ロール角 (rad)。0.25 ≒ 14°。カメラ自体をロールするので、
-// 視界全体と (子として追従する) カートが一緒に傾いて、明確に読み取れる。
-const TILT_ANGLE = 0.25
-// 1秒あたりの追従レート (大きいほどキビキビ)。
-const TILT_LERP = 8
-
+// 分岐に乗るとき、本線とカメラを同じだけ横シフトする。分岐ピース自体は動かさないので
+// 視野内で横に流れて見え、「片腕に乗って反対側が外れる」効果になる。
 const laterallyShifted = [rails, ties, tunnel, arches, torches, dust]
 
-const smoothstep = (t: number): number => {
-  const x = Math.max(0, Math.min(1, t))
-  return x * x * (3 - 2 * x)
-}
-
-function spawnBranch(side: 1 | -1) {
-  if (activeBranch) return
-  branchSide = side
-  const branch = new Branch()
-  // 現在の中央線上にスポーンさせる (本線と同じ横位置から Y が始まる)
-  branch.position.x = baseLateral
-  scene.add(branch)
-  activeBranch = branch
-}
-
-window.addEventListener('keydown', (e) => {
-  // 矢印キー/Space はブラウザが既定でページスクロールに使うため、
-  // 受け取った時点で preventDefault しておかないとフォーカス状況によって反応が消える。
-  if (e.key === 'ArrowRight') {
-    e.preventDefault()
-    tilt = 1
-  } else if (e.key === 'ArrowLeft') {
-    e.preventDefault()
-    tilt = -1
-  } else if (e.code === 'Space') {
-    e.preventDefault()
-    if (tilt !== 0) spawnBranch(tilt)
-  }
-})
-
-const TWO_PI = Math.PI * 2
+let branchView: Branch | null = null
 
 let prevTime = 0
 renderer.setAnimationLoop((time) => {
-  // time は ms。初回フレームは dt=0 として扱う
   const dt = prevTime === 0 ? 0 : (time - prevTime) / 1000
   prevTime = time
+
   rails.update(dt)
   ties.update(dt)
   tunnel.update(dt)
@@ -138,55 +78,29 @@ renderer.setAnimationLoop((time) => {
   torches.update(dt)
   dust.update(dt)
 
-  // 分岐ピースの進行と横シフト量の決定。
-  // position.z は 0 (合流端がカメラに到達) → BRANCH_TRAVERSE (発散端がカメラに到達) と進み、
-  // この区間で smoothstep 補間して baseLateral → baseLateral + side*BRANCH_OFFSET に推移させる。
-  let lateral = baseLateral
-  if (activeBranch) {
-    activeBranch.update(dt)
-    const z = activeBranch.position.z
-    if (z >= 0) {
-      const t = Math.min(z / BRANCH_TRAVERSE, 1)
-      lateral = baseLateral + branchSide * BRANCH_OFFSET * smoothstep(t)
+  game.update(dt)
+
+  if (game.branch) {
+    if (!branchView) {
+      branchView = new Branch()
+      branchView.position.x = game.baseLateral
+      scene.add(branchView)
     }
-    // 本線トンネルを分岐ピースの合流端より奥で打ち切る。
-    // 円筒の壁が分岐の進行方向を遮るのを防ぎ、Y 字に「自然に分かれて見える」ようにする。
-    // 通過後 (発散端を抜けた後) は活性ブランチが despawn されて else 側に落ち、本線が復帰する。
-    tunnel.clipPlane.constant = -z
-    if (activeBranch.done) {
-      baseLateral += branchSide * BRANCH_OFFSET
-      scene.remove(activeBranch)
-      activeBranch = null
-      tunnel.clipPlane.constant = 10000
-      // 新しい中央線に乗ったので、自然に水平へ戻す
-      tilt = 0
-    }
+    branchView.position.z = game.branch.z
+    tunnel.setClip(game.branch.z)
+  } else if (branchView) {
+    scene.remove(branchView)
+    branchView = null
+    tunnel.clearClip()
   }
+
   for (const obj of laterallyShifted) {
-    obj.position.x = lateral
+    obj.position.x = game.lateral
   }
 
-  // 傾きを camera.rotation.z にイージング適用。
-  // カメラ自体をロールすることで視界全体が傾き、子であるカートも一緒に回って
-  // 「トロッコごと身体を傾けた」感覚になる (cart 単独のロールだと視界が水平な
-  // ままで傾きが読み取りにくかった)。
-  // tilt = +1 (右) で「右に身体を傾ける = 視界が左にロール」よう符号は負。
-  const targetRoll = -tilt * TILT_ANGLE
-  tiltCurrent += (targetRoll - tiltCurrent) * (1 - Math.exp(-TILT_LERP * dt))
-  camera.rotation.z = tiltCurrent
+  cameraRig.setLateral(game.lateral)
+  cameraRig.setRoll(game.roll)
+  cameraRig.tick(time)
 
-  // カメラの微小な揺れ。
-  // 主周波数 + 非整数倍のサブ周波数を重ねて、規則的な往復に見えないようにする。
-  // x は左右、y は上下。位相をずらして両軸の最大値が同時に来るのを避ける。
-  const t = time / 1000
-  const shakeX =
-    Math.sin(t * CAMERA_SHAKE_FREQ_X * TWO_PI) * CAMERA_SHAKE_AMP_X +
-    Math.sin(t * CAMERA_SHAKE_FREQ_X * 1.7 * TWO_PI + 1.3) * CAMERA_SHAKE_AMP_X * 0.4
-  const shakeY =
-    Math.sin(t * CAMERA_SHAKE_FREQ_Y * TWO_PI + 0.7) * CAMERA_SHAKE_AMP_Y +
-    Math.cos(t * CAMERA_SHAKE_FREQ_Y * 1.3 * TWO_PI) * CAMERA_SHAKE_AMP_Y * 0.5
-  camera.position.x = shakeX + lateral
-  camera.position.y = CAMERA_HEIGHT + shakeY
-
-  renderer.render(scene, camera)
+  renderer.render(scene, cameraRig.camera)
 })
