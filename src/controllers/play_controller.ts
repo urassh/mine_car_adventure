@@ -69,7 +69,7 @@ export class PlayController {
 
   setTilt(side: -1 | 0 | 1): void {
     this.tilt = side
-    this.world.player.tilt(side * TILT_ANGLE)
+    this.world.player.tilt(-side * TILT_ANGLE)
   }
 
   requestSpawnBranch(): void {
