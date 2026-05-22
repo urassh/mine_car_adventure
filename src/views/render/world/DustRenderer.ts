@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { FORWARD_SPEED, RECYCLE_Z } from '../../core/constants'
+import { FORWARD_SPEED, RECYCLE_Z } from '../constants'
 import type { Renderer } from '../Renderer'
 
 const DUST_COUNT = 250

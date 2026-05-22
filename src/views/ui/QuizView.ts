@@ -84,6 +84,7 @@ export class QuizView {
   }
 
   renderScore(correct: number, answered: number): void {
+    this.scoreOverlay.classList.remove('hidden')
     const txt = `正解 ${correct} / 回答 ${answered}`
     if (txt !== this.lastScore) {
       this.scoreOverlay.textContent = txt
@@ -105,6 +106,11 @@ export class QuizView {
     this.countdownOverlay.classList.add('hidden')
     this.resultOverlay.classList.add('hidden')
     this.setChosenSide(null)
+  }
+
+  hideAll(): void {
+    this.hiddenQuiz()
+    this.scoreOverlay.classList.add('hidden')
   }
 
   private showResult(verdict: string, cls: 'correct' | 'wrong', description: string): void {

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { BRANCH_DESPAWN_Z, BRANCH_SPAWN_Z, FORWARD_SPEED } from '../core/constants'
+import { BRANCH_DESPAWN_Z, BRANCH_SPAWN_Z, FORWARD_SPEED } from './constants'
 import { CameraRig } from './camera/CameraRig'
 import { PlayerRenderer } from './player/PlayerRenderer'
 import { ArchFieldRenderer } from './world/ArchFieldRenderer'

@@ -4,13 +4,14 @@ import {
   BRANCH_SPAWN_Z,
   BRANCH_TRAVERSE,
   FORWARD_SPEED,
-} from '../core/constants'
+} from '../views/render/constants'
 import type { QuizQuestion } from '../quiz/QuizData'
-import type { WorldRenderer } from '../render/WorldRenderer'
-import type { QuizView } from '../ui/QuizView'
+import type { AnsweredDirection, QuizResult } from '../quiz/QuizResult'
+import type { DataStore } from '../stores/DataStore'
+import type { WorldRenderer } from '../views/render/WorldRenderer'
+import type { QuizView } from '../views/ui/QuizView'
 
-export type QuizState = 'Idle' | 'Selecting' | 'Answering' | 'Resolved'
-export type AnsweredDirection = 'left' | 'right' | 'none'
+export type QuizState = 'Idle' | 'Reading' | 'Selecting' | 'Answering' | 'Resolved'
 export type BranchSide = 1 | -1
 
 export interface BranchState {
@@ -18,15 +19,12 @@ export interface BranchState {
   z: number
 }
 
-export interface QuizResult {
-  question: QuizQuestion
-  answeredDirection: AnsweredDirection
-  isCorrect: boolean
-}
+export type { AnsweredDirection, QuizResult }
 
 const TILT_ANGLE = 0.25
 
 const IDLE_DURATION = 1.5
+const READING_DURATION = 3
 const SELECTING_DURATION = 10
 const COUNTDOWN_THRESHOLD = 5
 const RESOLVED_DURATION = 4.5
@@ -43,27 +41,26 @@ export class PlayController {
 
   quizState: QuizState = 'Idle'
   questionIndex = 0
-  correctCount = 0
-  answeredCount = 0
-  lastResult: QuizResult | null = null
+  completed = false
 
   private readonly world: WorldRenderer
   private readonly view: QuizView
+  private readonly store: DataStore
 
   private tilt: -1 | 0 | 1 = 0
 
-  private questions: QuizQuestion[] = []
   private stateElapsed = 0
   private baseLateralAtSelectingStart = 0
   private prevBranchActive = false
 
-  constructor(world: WorldRenderer, view: QuizView) {
+  constructor(world: WorldRenderer, view: QuizView, store: DataStore) {
     this.world = world
     this.view = view
+    this.store = store
   }
 
   setQuestions(questions: QuizQuestion[]): void {
-    this.questions = questions
+    this.store.setQuestions(questions)
     this.questionIndex = 0
   }
 
@@ -75,11 +72,24 @@ export class PlayController {
   requestSpawnBranch(): void {
     if (this.branch) return
     if (this.tilt === 0) return
+    if (this.quizState !== 'Selecting') return
     this.branch = { side: this.tilt, z: BRANCH_SPAWN_Z }
   }
 
   get currentQuestion(): QuizQuestion | null {
-    return this.questions[this.questionIndex] ?? null
+    return this.store.questionAt(this.questionIndex)
+  }
+
+  get correctCount(): number {
+    return this.store.correctCount
+  }
+
+  get answeredCount(): number {
+    return this.store.answeredCount
+  }
+
+  get lastResult(): QuizResult | null {
+    return this.store.lastResult
   }
 
   get selectingTimeLeft(): number {
@@ -106,6 +116,11 @@ export class PlayController {
     switch (this.quizState) {
       case 'Idle':
         if (this.stateElapsed >= IDLE_DURATION && this.currentQuestion) {
+          this.transition('Reading')
+        }
+        break
+      case 'Reading':
+        if (this.stateElapsed >= READING_DURATION) {
           this.enterSelecting()
         }
         break
@@ -182,6 +197,11 @@ export class PlayController {
     switch (this.quizState) {
       case 'Idle':
         return
+      case 'Reading': {
+        const cq = this.currentQuestion
+        if (cq) v.renderQuestionBoard(cq.question)
+        return
+      }
       case 'Selecting':
       case 'Answering': {
         const cq = this.currentQuestion
@@ -219,14 +239,17 @@ export class PlayController {
     if (!q) return
     const chosen = dir === 'none' ? undefined : q.choices.find((c) => c.direction === dir)
     const isCorrect = chosen?.isCorrect ?? false
-    this.lastResult = { question: q, answeredDirection: dir, isCorrect }
-    this.answeredCount += 1
-    if (isCorrect) this.correctCount += 1
+    this.store.addResult({ question: q, answeredDirection: dir, isCorrect })
   }
 
   private advanceQuestion(): void {
-    if (this.questions.length === 0) return
-    this.questionIndex = (this.questionIndex + 1) % this.questions.length
+    const total = this.store.questionCount
+    if (total === 0) return
+    if (this.questionIndex + 1 >= total) {
+      this.completed = true
+      return
+    }
+    this.questionIndex += 1
   }
 
   private transition(next: QuizState): void {

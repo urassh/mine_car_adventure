@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { BRANCH_LENGTH, BRANCH_OFFSET } from '../../core/constants'
+import { BRANCH_LENGTH, BRANCH_OFFSET } from '../constants'
 import { createMetalTextures, createRockTextures } from '../../textures/procedural'
 import type { Renderer } from '../Renderer'
 import {

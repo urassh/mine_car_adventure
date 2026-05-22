@@ -8,14 +8,14 @@
   </head>
   <body>
     <div id="app"></div>
-    <div id="score-overlay"></div>
-    <div id="question-overlay"></div>
-    <div id="countdown-overlay"></div>
-    <div id="result-overlay">
+    <div id="score-overlay" class="hidden"></div>
+    <div id="question-overlay" class="hidden"></div>
+    <div id="countdown-overlay" class="hidden"></div>
+    <div id="result-overlay" class="hidden">
       <div class="result-verdict"></div>
       <div class="result-explanation"></div>
     </div>
-    <div id="choices-overlay">
+    <div id="choices-overlay" class="hidden">
       <div class="choice" data-direction="left">
         <div class="choice-frame">
           <div class="choice-label"></div>
@@ -24,6 +24,22 @@
       <div class="choice" data-direction="right">
         <div class="choice-frame">
           <div class="choice-label"></div>
+        </div>
+      </div>
+    </div>
+    <div id="title-overlay" class="hidden">
+      <div class="title-card">
+        <div class="title-heading">トロッコアドベンチャー</div>
+        <button class="title-start" type="button">スタート</button>
+        <div class="title-hint">Enter / Space でも開始できます</div>
+      </div>
+    </div>
+    <div id="final-result-overlay" class="hidden">
+      <div class="final-result-card">
+        <div class="final-result-heading">リザルト</div>
+        <div class="final-score"></div>
+        <div class="final-actions">
+          <button class="next" type="button">タイトルへ</button>
         </div>
       </div>
     </div>

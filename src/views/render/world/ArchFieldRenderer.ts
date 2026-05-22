@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { FORWARD_SPEED, RECYCLE_Z } from '../../core/constants'
+import { FORWARD_SPEED, RECYCLE_Z } from '../constants'
 import { createWoodTextures } from '../../textures/procedural'
 import type { Renderer } from '../Renderer'
 import { ARCH_COUNT, ARCH_SPACING } from './dimensions'
