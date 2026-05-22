@@ -148,6 +148,10 @@ export class PlayController {
           else if (delta < 0) this.recordResult('left')
           else this.recordResult('none')
           this.transition('Resolved')
+          if (this.lastResult?.isCorrect) {
+            this.view.playSparkle()
+            this.view.stageCorrectExplanation()
+          }
         }
         break
       case 'Resolved':

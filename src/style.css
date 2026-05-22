@@ -209,6 +209,10 @@ canvas {
   text-shadow: 0 0 8px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.85);
 }
 
+#result-overlay.correct {
+  background-image: none;
+}
+
 #result-overlay.correct .result-verdict {
   color: #5fff7a;
 }
@@ -222,6 +226,57 @@ canvas {
   font-size: clamp(16px, 2.1vw, 24px);
   line-height: 1.5;
   text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.8);
+  transition: opacity 0.5s ease-out;
+}
+
+#result-overlay.staged .result-explanation {
+  opacity: 0;
+}
+
+#sparkle-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.sparkle {
+  position: absolute;
+  color: #fff48a;
+  text-shadow:
+    0 0 6px #ffd460,
+    0 0 14px #ffb830,
+    0 0 24px rgba(255, 184, 48, 0.6);
+  transform: translate(-50%, -50%) scale(0) rotate(0deg);
+  opacity: 0;
+  user-select: none;
+  font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-weight: 900;
+  line-height: 1;
+  will-change: transform, opacity;
+  animation: sparkle-pop 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes sparkle-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1.25) rotate(60deg);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1) rotate(120deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0) rotate(200deg);
+    opacity: 0;
+  }
 }
 
 #score-overlay {

@@ -12,6 +12,7 @@ export class QuizView {
   private readonly resultVerdict: HTMLDivElement
   private readonly resultExplanation: HTMLDivElement
   private readonly scoreOverlay: HTMLDivElement
+  private readonly sparkleLayer: HTMLDivElement
 
   private lastQuestion = ''
   private lastLeft = ''
@@ -21,6 +22,7 @@ export class QuizView {
   private lastExplanation = ''
   private lastScore = ''
   private lastChosen: ChoiceSide | null = null
+  private explanationTimer: number | null = null
 
   constructor(root: ParentNode) {
     this.questionOverlay = root.querySelector<HTMLDivElement>('#question-overlay')!
@@ -34,8 +36,54 @@ export class QuizView {
     this.resultVerdict = this.resultOverlay.querySelector<HTMLDivElement>('.result-verdict')!
     this.resultExplanation = this.resultOverlay.querySelector<HTMLDivElement>('.result-explanation')!
     this.scoreOverlay = root.querySelector<HTMLDivElement>('#score-overlay')!
+    this.sparkleLayer = root.querySelector<HTMLDivElement>('#sparkle-layer')!
 
     this.hiddenQuiz()
+  }
+
+  playSparkle(): void {
+    const count = 18
+    const cx = window.innerWidth / 2
+    const cy = window.innerHeight * 0.38
+    const symbols = ['✦', '✧', '✨', '⋆']
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div')
+      el.className = 'sparkle'
+      el.textContent = symbols[Math.floor(Math.random() * symbols.length)]
+      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4
+      const radius = 80 + Math.random() * 200
+      const x = cx + Math.cos(angle) * radius
+      const y = cy + Math.sin(angle) * radius * 0.75
+      el.style.left = `${x}px`
+      el.style.top = `${y}px`
+      el.style.fontSize = `${22 + Math.random() * 28}px`
+      el.style.animationDelay = `${Math.random() * 0.25}s`
+      this.sparkleLayer.appendChild(el)
+      el.addEventListener('animationend', () => el.remove(), { once: true })
+    }
+  }
+
+  clearSparkle(): void {
+    while (this.sparkleLayer.firstChild) {
+      this.sparkleLayer.removeChild(this.sparkleLayer.firstChild)
+    }
+  }
+
+  stageCorrectExplanation(delayMs = 1500): void {
+    this.clearStage()
+    this.resultOverlay.classList.add('staged')
+    this.explanationTimer = window.setTimeout(() => {
+      this.resultOverlay.classList.remove('staged')
+      this.explanationTimer = null
+    }, delayMs)
+  }
+
+  clearStage(): void {
+    if (this.explanationTimer !== null) {
+      clearTimeout(this.explanationTimer)
+      this.explanationTimer = null
+    }
+    this.resultOverlay.classList.remove('staged')
   }
 
   renderQuestionBoard(text: string): void {
@@ -111,6 +159,8 @@ export class QuizView {
   hideAll(): void {
     this.hiddenQuiz()
     this.scoreOverlay.classList.add('hidden')
+    this.clearSparkle()
+    this.clearStage()
   }
 
   private showResult(verdict: string, cls: 'correct' | 'wrong', description: string): void {
