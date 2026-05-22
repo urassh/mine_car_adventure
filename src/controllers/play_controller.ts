@@ -3,6 +3,7 @@ import {
   BRANCH_OFFSET,
   BRANCH_SPAWN_Z,
   BRANCH_TRAVERSE,
+  EXIT_SPAWN_Z,
   FORWARD_SPEED,
 } from '../views/render/constants'
 import type { QuizQuestion } from '../quiz/QuizData'
@@ -11,7 +12,7 @@ import type { DataStore } from '../stores/DataStore'
 import type { WorldRenderer } from '../views/render/WorldRenderer'
 import type { QuizView } from '../views/ui/QuizView'
 
-export type QuizState = 'Idle' | 'Reading' | 'Selecting' | 'Answering' | 'Resolved'
+export type QuizState = 'Idle' | 'Reading' | 'Selecting' | 'Answering' | 'Resolved' | 'Exiting'
 export type BranchSide = 1 | -1
 
 export interface BranchState {
@@ -28,6 +29,7 @@ const READING_DURATION = 3
 const SELECTING_DURATION = 10
 const COUNTDOWN_THRESHOLD = 5
 const RESOLVED_DURATION = 4.5
+const EXIT_TRAVERSE_DURATION = -EXIT_SPAWN_Z / FORWARD_SPEED
 
 const smoothstep = (t: number): number => {
   const x = Math.max(0, Math.min(1, t))
@@ -150,8 +152,24 @@ export class PlayController {
         break
       case 'Resolved':
         if (this.stateElapsed >= RESOLVED_DURATION) {
-          this.advanceQuestion()
-          this.transition('Idle')
+          const total = this.store.questionCount
+          const isLast = total > 0 && this.questionIndex + 1 >= total
+          if (isLast) {
+            if (this.lastResult?.isCorrect) {
+              this.world.pushExit(this.baseLateral)
+              this.transition('Exiting')
+            } else {
+              this.completed = true
+            }
+          } else {
+            this.questionIndex += 1
+            this.transition('Idle')
+          }
+        }
+        break
+      case 'Exiting':
+        if (this.stateElapsed >= EXIT_TRAVERSE_DURATION) {
+          this.completed = true
         }
         break
     }
@@ -240,16 +258,6 @@ export class PlayController {
     const chosen = dir === 'none' ? undefined : q.choices.find((c) => c.direction === dir)
     const isCorrect = chosen?.isCorrect ?? false
     this.store.addResult({ question: q, answeredDirection: dir, isCorrect })
-  }
-
-  private advanceQuestion(): void {
-    const total = this.store.questionCount
-    if (total === 0) return
-    if (this.questionIndex + 1 >= total) {
-      this.completed = true
-      return
-    }
-    this.questionIndex += 1
   }
 
   private transition(next: QuizState): void {

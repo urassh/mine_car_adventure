@@ -7,3 +7,6 @@ export const BRANCH_TRAVERSE = BRANCH_LENGTH
 
 export const BRANCH_SPAWN_Z = -36
 export const BRANCH_DESPAWN_Z = BRANCH_TRAVERSE + 6
+
+export const EXIT_SPAWN_Z = -60
+export const EXIT_DESPAWN_Z = 8

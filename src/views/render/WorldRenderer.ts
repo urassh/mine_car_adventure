@@ -1,11 +1,18 @@
 import * as THREE from 'three'
-import { BRANCH_DESPAWN_Z, BRANCH_SPAWN_Z, FORWARD_SPEED } from './constants'
+import {
+  BRANCH_DESPAWN_Z,
+  BRANCH_SPAWN_Z,
+  EXIT_DESPAWN_Z,
+  EXIT_SPAWN_Z,
+  FORWARD_SPEED,
+} from './constants'
 import { CameraRig } from './camera/CameraRig'
 import { PlayerRenderer } from './player/PlayerRenderer'
 import { ArchFieldRenderer } from './world/ArchFieldRenderer'
 import { BranchRenderer } from './world/BranchRenderer'
 import { CartRenderer } from './world/CartRenderer'
 import { DustRenderer } from './world/DustRenderer'
+import { ExitRenderer } from './world/ExitRenderer'
 import { RailFieldRenderer } from './world/RailFieldRenderer'
 import { TieFieldRenderer } from './world/TieFieldRenderer'
 import { TorchFieldRenderer } from './world/TorchFieldRenderer'
@@ -31,10 +38,15 @@ export class WorldRenderer {
   private readonly dust = new DustRenderer()
   private readonly cart = new CartRenderer()
   private readonly branch = new BranchRenderer()
+  private readonly exit = new ExitRenderer()
 
   private branchActive = false
   private branchAnchorX = 0
   private branchZ = 0
+
+  private exitActive = false
+  private exitAnchorX = 0
+  private exitZ = 0
 
   constructor(container: HTMLElement) {
     this.scene.background = new THREE.Color(DARK)
@@ -56,6 +68,7 @@ export class WorldRenderer {
     this.torches.mount(this.scene)
     this.dust.mount(this.scene)
     this.branch.mount(this.scene)
+    this.exit.mount(this.scene)
 
     this.player = new PlayerRenderer(this.cameraRig, this.cart, [
       this.rails,
@@ -73,6 +86,13 @@ export class WorldRenderer {
     this.branchActive = true
     this.branchAnchorX = baseX
     this.branchZ = BRANCH_SPAWN_Z
+  }
+
+  pushExit(baseX: number): void {
+    if (this.exitActive) return
+    this.exitActive = true
+    this.exitAnchorX = baseX
+    this.exitZ = EXIT_SPAWN_Z
   }
 
   update(dt: number): void {
@@ -97,6 +117,20 @@ export class WorldRenderer {
       this.branch.hide()
       this.tunnel.clearBranchClip()
     }
+
+    if (this.exitActive) {
+      this.exitZ += FORWARD_SPEED * dt
+      if (this.exitZ > EXIT_DESPAWN_Z) {
+        this.exitActive = false
+      }
+    }
+
+    if (this.exitActive) {
+      this.exit.show(this.exitAnchorX, this.exitZ)
+      this.exit.update(dt)
+    } else {
+      this.exit.hide()
+    }
   }
 
   render(): void {
@@ -117,6 +151,7 @@ export class WorldRenderer {
     this.dust.dispose()
     this.player.dispose()
     this.branch.dispose()
+    this.exit.dispose()
     this.webgl.dispose()
     this.webgl.domElement.remove()
   }
