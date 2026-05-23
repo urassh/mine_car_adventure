@@ -1,24 +1,42 @@
 [
   {
     "id": 1,
-    "question": "富士山の標高はおよそ何メートル？",
+    "question": "宮地先生の下のお名前は？",
     "choices": [
-      { "label": "3776 m", "direction": "left", "isCorrect": true },
-      { "label": "2980 m", "direction": "right", "isCorrect": false }
+      { "label": "英世", "direction": "left", "isCorrect": false },
+      { "label": "英生", "direction": "right", "isCorrect": true }
     ],
-    "explanation": "富士山の標高は 3776 m で、日本一高い山。"
+    "explanation": "本学のビジュアライゼーション担当は宮地 英生 (みやち ひでお) 先生。"
   },
   {
     "id": 2,
-    "question": "光の速さは秒速およそ何 km？",
+    "question": "3D グラフィックス API として正しいのは？",
     "choices": [
-      { "label": "30 万 km", "direction": "left", "isCorrect": true },
-      { "label": "3 万 km", "direction": "right", "isCorrect": false }
+      { "label": "OpenGL", "direction": "left", "isCorrect": true },
+      { "label": "OpenBL", "direction": "right", "isCorrect": false }
     ],
-    "explanation": "真空中の光速は約 299,792 km/s、約 30 万 km/s と覚える。"
+    "explanation": "OpenGL は 3D グラフィックス API のデファクトスタンダード。OpenBL という API は存在しない。"
   },
   {
     "id": 3,
+    "question": "今からおよそ 10 年前に公開された曲は？",
+    "choices": [
+      { "label": "千本桜", "direction": "left", "isCorrect": false },
+      { "label": "ゴーストルール", "direction": "right", "isCorrect": true }
+    ],
+    "explanation": "千本桜 は 2011 年、ゴーストルール は 2016 年公開。2026 年から見た 10 年前は 2016 年なのでゴーストルール。"
+  },
+  {
+    "id": 4,
+    "question": "健康状態を調べる検査はどっち？",
+    "choices": [
+      { "label": "人間ドッグ", "direction": "left", "isCorrect": false },
+      { "label": "人間ドック", "direction": "right", "isCorrect": true }
+    ],
+    "explanation": "正しい表記は 人間ドック。英語の dock (船渠) が語源で、整備のための入渠になぞらえた表現。"
+  },
+  {
+    "id": 5,
     "question": "オーストラリアの首都は？",
     "choices": [
       { "label": "シドニー", "direction": "left", "isCorrect": false },

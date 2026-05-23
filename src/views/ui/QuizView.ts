@@ -1,4 +1,5 @@
 export type ChoiceSide = 'left' | 'right'
+export type ProgressBoxState = 'upcoming' | 'current' | 'correct' | 'wrong'
 
 export class QuizView {
   private readonly questionOverlay: HTMLDivElement
@@ -20,9 +21,12 @@ export class QuizView {
   private lastCountdown = ''
   private lastVerdict = ''
   private lastExplanation = ''
-  private lastScore = ''
   private lastChosen: ChoiceSide | null = null
   private explanationTimer: number | null = null
+  private qboxes: HTMLDivElement[] = []
+  private lastStates: ProgressBoxState[] = []
+  private lastChoiceQuestionId: number | null = null
+  private readonly imageStatus = new Map<string, 'loading' | 'ready' | 'missing'>()
 
   constructor(root: ParentNode) {
     this.questionOverlay = root.querySelector<HTMLDivElement>('#question-overlay')!
@@ -110,6 +114,50 @@ export class QuizView {
     }
   }
 
+  preloadChoiceImages(questionIds: readonly number[]): void {
+    for (const id of questionIds) {
+      this.preloadChoiceImage(id, 'left')
+      this.preloadChoiceImage(id, 'right')
+    }
+  }
+
+  applyChoiceImages(questionId: number): void {
+    if (questionId === this.lastChoiceQuestionId) return
+    this.lastChoiceQuestionId = questionId
+    this.preloadChoiceImage(questionId, 'left')
+    this.preloadChoiceImage(questionId, 'right')
+    this.applyChoiceBg('left', questionId)
+    this.applyChoiceBg('right', questionId)
+  }
+
+  private preloadChoiceImage(questionId: number, side: ChoiceSide): void {
+    const key = `${questionId}:${side}`
+    if (this.imageStatus.has(key)) return
+    this.imageStatus.set(key, 'loading')
+    const url = `/quiz/${questionId}/${side}.jpg`
+    const img = new Image()
+    img.onload = () => {
+      this.imageStatus.set(key, 'ready')
+      if (this.lastChoiceQuestionId === questionId) {
+        this.applyChoiceBg(side, questionId)
+      }
+    }
+    img.onerror = () => {
+      this.imageStatus.set(key, 'missing')
+    }
+    img.src = url
+  }
+
+  private applyChoiceBg(side: ChoiceSide, questionId: number): void {
+    const el = side === 'left' ? this.leftLabel : this.rightLabel
+    const status = this.imageStatus.get(`${questionId}:${side}`)
+    if (status === 'ready') {
+      el.style.backgroundImage = `url("/quiz/${questionId}/${side}.jpg")`
+    } else {
+      el.style.backgroundImage = ''
+    }
+  }
+
   renderCountDown(time: number): void {
     this.countdownOverlay.classList.remove('hidden')
     const s = String(time)
@@ -131,12 +179,31 @@ export class QuizView {
     this.showResult('未回答', 'wrong', description)
   }
 
-  renderScore(correct: number, answered: number): void {
+  renderProgress(states: readonly ProgressBoxState[]): void {
     this.scoreOverlay.classList.remove('hidden')
-    const txt = `正解 ${correct} / 回答 ${answered}`
-    if (txt !== this.lastScore) {
-      this.scoreOverlay.textContent = txt
-      this.lastScore = txt
+    if (states.length !== this.qboxes.length) {
+      this.scoreOverlay.textContent = ''
+      this.qboxes = []
+      for (let i = 0; i < states.length; i++) {
+        const box = document.createElement('div')
+        box.className = 'qbox'
+        const label = document.createElement('div')
+        label.className = 'qbox-label'
+        label.textContent = String(i + 1)
+        box.appendChild(label)
+        this.scoreOverlay.appendChild(box)
+        this.qboxes.push(box)
+      }
+      this.lastStates = new Array(states.length).fill('upcoming')
+    }
+    for (let i = 0; i < states.length; i++) {
+      const s = states[i]
+      if (s === this.lastStates[i]) continue
+      const box = this.qboxes[i]
+      box.classList.toggle('current', s === 'current')
+      box.classList.toggle('correct', s === 'correct')
+      box.classList.toggle('wrong', s === 'wrong')
+      this.lastStates[i] = s
     }
   }
 

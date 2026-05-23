@@ -10,7 +10,7 @@ import type { QuizQuestion } from '../quiz/QuizData'
 import type { AnsweredDirection, QuizResult } from '../quiz/QuizResult'
 import type { DataStore } from '../stores/DataStore'
 import type { WorldRenderer } from '../views/render/WorldRenderer'
-import type { QuizView } from '../views/ui/QuizView'
+import type { ProgressBoxState, QuizView } from '../views/ui/QuizView'
 
 export type QuizState = 'Idle' | 'Reading' | 'Selecting' | 'Answering' | 'Resolved' | 'Exiting'
 export type BranchSide = 1 | -1
@@ -64,6 +64,7 @@ export class PlayController {
   setQuestions(questions: QuizQuestion[]): void {
     this.store.setQuestions(questions)
     this.questionIndex = 0
+    this.view.preloadChoiceImages(questions.map((q) => q.id))
   }
 
   setTilt(side: -1 | 0 | 1): void {
@@ -213,7 +214,7 @@ export class PlayController {
 
   private driveView(): void {
     const v = this.view
-    v.renderScore(this.correctCount, this.answeredCount)
+    v.renderProgress(this.buildProgressStates())
     v.hiddenQuiz()
 
     switch (this.quizState) {
@@ -231,6 +232,7 @@ export class PlayController {
           v.renderQuestionBoard(cq.question)
           v.renderLeftChoice(cq.choices.find((c) => c.direction === 'left')?.label ?? '')
           v.renderRightChoice(cq.choices.find((c) => c.direction === 'right')?.label ?? '')
+          v.applyChoiceImages(cq.id)
         }
         if (this.countdownDigit !== null) {
           v.renderCountDown(this.countdownDigit)
@@ -262,6 +264,19 @@ export class PlayController {
     const chosen = dir === 'none' ? undefined : q.choices.find((c) => c.direction === dir)
     const isCorrect = chosen?.isCorrect ?? false
     this.store.addResult({ question: q, answeredDirection: dir, isCorrect })
+  }
+
+  private buildProgressStates(): ProgressBoxState[] {
+    const total = this.store.questionCount
+    const results = this.store.getResults()
+    const states: ProgressBoxState[] = []
+    for (let i = 0; i < total; i++) {
+      const r = results[i]
+      if (r) states.push(r.isCorrect ? 'correct' : 'wrong')
+      else if (i === this.questionIndex) states.push('current')
+      else states.push('upcoming')
+    }
+    return states
   }
 
   private transition(next: QuizState): void {
