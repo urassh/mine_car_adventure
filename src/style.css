@@ -357,6 +357,38 @@ canvas {
   background: #ffd5e0;
 }
 
+#mode-hint {
+  position: fixed;
+  top: 68%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 12px 28px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(247, 230, 196, 0.25);
+  color: #f7e6c4;
+  font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", "Meiryo",
+    sans-serif;
+  font-weight: 700;
+  font-size: clamp(16px, 2vw, 22px);
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  z-index: 11;
+  animation: mode-hint-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes mode-hint-pulse {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 #title-overlay,
 #final-result-overlay {
   position: fixed;

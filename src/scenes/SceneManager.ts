@@ -1,3 +1,4 @@
+import { ModeSelectScene } from './ModeSelectScene'
 import type { NextSceneNavigator } from './NextSceneNavigator'
 import { PlayScene } from './PlayScene'
 import { ResultScene } from './ResultScene'
@@ -29,7 +30,8 @@ export class SceneManager implements NextSceneNavigator {
   }
 
   private resolveNext(current: Scene): Scene {
-    if (current instanceof TitleScene) return new PlayScene()
+    if (current instanceof TitleScene) return new ModeSelectScene()
+    if (current instanceof ModeSelectScene) return new PlayScene()
     if (current instanceof PlayScene) return new ResultScene()
     if (current instanceof ResultScene) return new TitleScene()
     return new TitleScene()
