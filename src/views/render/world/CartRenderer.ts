@@ -19,11 +19,15 @@ const INNER_LIGHT_DISTANCE = 2.2
 const INNER_LIGHT_DECAY = 2
 const INNER_LIGHT_Y = RIM_TOP_Y - RIM_HEIGHT - 0.2
 
+const TILT_LERP = 8
+
 export class CartRenderer implements Renderer {
   readonly object3D = new THREE.Group()
   private readonly geometries: THREE.BoxGeometry[] = []
   private readonly material: THREE.MeshStandardMaterial
   private readonly woodTextures: ReturnType<typeof createWoodTextures>
+  private targetTilt = 0
+  private currentTilt = 0
 
   constructor() {
     this.woodTextures = createWoodTextures(2, 2)
@@ -103,7 +107,18 @@ export class CartRenderer implements Renderer {
     parent.add(this.object3D)
   }
 
-  update(): void {}
+  tilt(angle: number): void {
+    this.targetTilt = angle
+  }
+
+  resetOrientation(): void {
+    this.targetTilt = 0
+  }
+
+  update(dt: number): void {
+    this.currentTilt += (this.targetTilt - this.currentTilt) * (1 - Math.exp(-TILT_LERP * dt))
+    this.object3D.rotation.z = this.currentTilt
+  }
 
   dispose(): void {
     for (const g of this.geometries) g.dispose()

@@ -1,3 +1,4 @@
+import { LobbyScene } from './LobbyScene'
 import { ModeSelectScene } from './ModeSelectScene'
 import type { NextSceneNavigator } from './NextSceneNavigator'
 import { PlayScene } from './PlayScene'
@@ -31,7 +32,10 @@ export class SceneManager implements NextSceneNavigator {
 
   private resolveNext(current: Scene): Scene {
     if (current instanceof TitleScene) return new ModeSelectScene()
-    if (current instanceof ModeSelectScene) return new PlayScene()
+    if (current instanceof ModeSelectScene) {
+      return current.chosenMode === 'multi' ? new LobbyScene() : new PlayScene()
+    }
+    if (current instanceof LobbyScene) return new PlayScene()
     if (current instanceof PlayScene) return new ResultScene()
     if (current instanceof ResultScene) return new TitleScene()
     return new TitleScene()

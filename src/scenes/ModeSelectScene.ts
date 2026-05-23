@@ -26,9 +26,16 @@ const smoothstep = (t: number): number => {
   return x * x * (3 - 2 * x)
 }
 
+export type GameMode = 'single' | 'multi'
+
 export class ModeSelectScene extends Scene {
   private world!: WorldRenderer
   private navigator: NextSceneNavigator | null = null
+  private chosen: GameMode | null = null
+
+  get chosenMode(): GameMode | null {
+    return this.chosen
+  }
 
   private questionOverlay: HTMLDivElement | null = null
   private choicesOverlay: HTMLDivElement | null = null
@@ -158,7 +165,9 @@ export class ModeSelectScene extends Scene {
     if (this.tilt === 0) return
     if (this.transitionTimer !== null) return
     this.branch = { side: this.tilt, z: BRANCH_SPAWN_Z }
-    this.setChosen(this.tilt === 1 ? 'right' : 'left')
+    const side = this.tilt === 1 ? 'right' : 'left'
+    this.chosen = side === 'right' ? 'multi' : 'single'
+    this.setChosen(side)
     this.hintOverlay?.classList.add('hidden')
   }
 

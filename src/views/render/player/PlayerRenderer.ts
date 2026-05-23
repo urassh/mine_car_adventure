@@ -26,15 +26,16 @@ export class PlayerRenderer {
   }
 
   tilt(angle: number): void {
-    this.cameraRig.tilt(angle)
+    this.cart.tilt(angle)
   }
 
   resetOrientation(): void {
-    this.cameraRig.resetOrientation()
+    this.cart.resetOrientation()
   }
 
   update(dt: number, timeMs: number): void {
     this.cameraRig.update(dt, timeMs)
+    this.cart.update(dt)
   }
 
   dispose(): void {
