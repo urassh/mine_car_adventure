@@ -78,9 +78,63 @@ canvas {
 }
 
 .choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   /* Answering でのスライド & フェードを滑らかにするための共通遷移 */
   transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
     opacity 0.3s ease-out;
+}
+
+.choice-voters {
+  width: min(320px, 32vw);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 6px;
+  min-height: 28px;
+}
+
+.choice-voters:empty {
+  display: none;
+}
+
+.voter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 48px;
+}
+
+.voter-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: linear-gradient(135deg, #f6dd8a 0%, #d4a04a 50%, #8c5d22 100%);
+  color: #1a1208;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+.voter-name {
+  width: 100%;
+  font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", "Meiryo",
+    sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1.1;
+  color: #f7e6c4;
+  text-align: center;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Answering: 選ばなかった方は消し、選んだ方を中央 (= 自分の幅 + gap の半分) へスライド。

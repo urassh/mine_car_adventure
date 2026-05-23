@@ -1,3 +1,5 @@
+import type { Vote } from '../../multi/MultiConnection'
+
 export type ChoiceSide = 'left' | 'right'
 export type ProgressBoxState = 'upcoming' | 'current' | 'correct' | 'wrong'
 
@@ -8,6 +10,8 @@ export class QuizView {
   private readonly rightChoice: HTMLDivElement
   private readonly leftLabel: HTMLDivElement
   private readonly rightLabel: HTMLDivElement
+  private readonly leftVoters: HTMLDivElement
+  private readonly rightVoters: HTMLDivElement
   private readonly countdownOverlay: HTMLDivElement
   private readonly resultOverlay: HTMLDivElement
   private readonly resultVerdict: HTMLDivElement
@@ -35,6 +39,8 @@ export class QuizView {
     this.rightChoice = root.querySelector<HTMLDivElement>('.choice[data-direction="right"]')!
     this.leftLabel = root.querySelector<HTMLDivElement>('.choice[data-direction="left"] .choice-label')!
     this.rightLabel = root.querySelector<HTMLDivElement>('.choice[data-direction="right"] .choice-label')!
+    this.leftVoters = root.querySelector<HTMLDivElement>('.choice[data-direction="left"] .choice-voters')!
+    this.rightVoters = root.querySelector<HTMLDivElement>('.choice[data-direction="right"] .choice-voters')!
     this.countdownOverlay = root.querySelector<HTMLDivElement>('#countdown-overlay')!
     this.resultOverlay = root.querySelector<HTMLDivElement>('#result-overlay')!
     this.resultVerdict = this.resultOverlay.querySelector<HTMLDivElement>('.result-verdict')!
@@ -207,6 +213,32 @@ export class QuizView {
     }
   }
 
+  renderVotes(votes: readonly Vote[]): void {
+    this.leftVoters.replaceChildren(...this.buildVoterNodes(votes, 'left'))
+    this.rightVoters.replaceChildren(...this.buildVoterNodes(votes, 'right'))
+  }
+
+  private buildVoterNodes(votes: readonly Vote[], side: ChoiceSide): HTMLDivElement[] {
+    const nodes: HTMLDivElement[] = []
+    for (const v of votes) {
+      if (v.side !== side) continue
+      const el = document.createElement('div')
+      el.className = 'voter'
+
+      const avatar = document.createElement('div')
+      avatar.className = 'voter-avatar'
+      avatar.textContent = v.member.avatar
+
+      const name = document.createElement('div')
+      name.className = 'voter-name'
+      name.textContent = v.member.name
+
+      el.append(avatar, name)
+      nodes.push(el)
+    }
+    return nodes
+  }
+
   setChosenSide(side: ChoiceSide | null): void {
     if (side === this.lastChosen) return
     this.choicesOverlay.classList.toggle('answering', side !== null)
@@ -226,6 +258,8 @@ export class QuizView {
   hideAll(): void {
     this.hiddenQuiz()
     this.scoreOverlay.classList.add('hidden')
+    this.leftVoters.replaceChildren()
+    this.rightVoters.replaceChildren()
     this.clearSparkle()
     this.clearStage()
   }

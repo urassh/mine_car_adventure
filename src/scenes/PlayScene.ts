@@ -1,11 +1,16 @@
 import { KeyboardInput } from '../controllers/keyboard_input'
 import { PlayController } from '../controllers/play_controller'
+import type { MultiConnection } from '../multi/MultiConnection'
 import { loadQuizData } from '../quiz/QuizData'
 import { DataStore } from '../stores/DataStore'
 import { WorldRenderer } from '../views/render/WorldRenderer'
 import { QuizView } from '../views/ui/QuizView'
 import type { NextSceneNavigator } from './NextSceneNavigator'
 import { Scene } from './Scene'
+
+interface PlayOptions {
+  readonly connection?: MultiConnection
+}
 
 export class PlayScene extends Scene {
   private world!: WorldRenderer
@@ -15,6 +20,12 @@ export class PlayScene extends Scene {
   private keyboard!: KeyboardInput
   private navigator: NextSceneNavigator | null = null
   private transitioned = false
+  private readonly connection?: MultiConnection
+
+  constructor(options: PlayOptions = {}) {
+    super()
+    this.connection = options.connection
+  }
 
   mount(navigator: NextSceneNavigator): void {
     this.navigator = navigator
@@ -27,12 +38,15 @@ export class PlayScene extends Scene {
     this.keyboard = new KeyboardInput(this.play)
     this.keyboard.attach()
 
+    this.connection?.start({ onVote: (v) => this.play.onVote(v) })
+
     loadQuizData()
       .then((qs) => this.play.setQuestions(qs))
       .catch((err) => console.error(err))
   }
 
   unmount(): void {
+    this.connection?.stop()
     this.keyboard.detach()
     this.view.hideAll()
     this.world.dispose()

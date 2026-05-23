@@ -8,11 +8,15 @@ export class LobbyScene extends Scene {
   private startButton: HTMLButtonElement | null = null
   private listEl: HTMLUListElement | null = null
   private navigator: NextSceneNavigator | null = null
-  private connection: MultiConnection
+  private readonly conn: MultiConnection
 
   constructor(connection: MultiConnection = new DummyMultiConnection()) {
     super()
-    this.connection = connection
+    this.conn = connection
+  }
+
+  get connection(): MultiConnection {
+    return this.conn
   }
 
   mount(navigator: NextSceneNavigator): void {
@@ -26,11 +30,10 @@ export class LobbyScene extends Scene {
     this.startButton?.addEventListener('click', this.onStart)
     window.addEventListener('keydown', this.onKey)
 
-    this.connection.start(this.onUpdateMembers)
+    this.conn.start({ onUpdateMembers: this.onUpdateMembers })
   }
 
   unmount(): void {
-    this.connection.stop()
     this.startButton?.removeEventListener('click', this.onStart)
     window.removeEventListener('keydown', this.onKey)
     this.overlay?.classList.add('hidden')

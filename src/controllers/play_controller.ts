@@ -6,6 +6,7 @@ import {
   EXIT_SPAWN_Z,
   FORWARD_SPEED,
 } from '../views/render/constants'
+import type { Vote } from '../multi/MultiConnection'
 import type { QuizQuestion } from '../quiz/QuizData'
 import type { AnsweredDirection, QuizResult } from '../quiz/QuizResult'
 import type { DataStore } from '../stores/DataStore'
@@ -54,6 +55,7 @@ export class PlayController {
   private stateElapsed = 0
   private baseLateralAtSelectingStart = 0
   private prevBranchActive = false
+  private votes: Vote[] = []
 
   constructor(world: WorldRenderer, view: QuizView, store: DataStore) {
     this.world = world
@@ -77,6 +79,19 @@ export class PlayController {
     if (this.tilt === 0) return
     if (this.quizState !== 'Selecting') return
     this.branch = { side: this.tilt, z: BRANCH_SPAWN_Z }
+  }
+
+  onVote(vote: Vote): void {
+    if (this.quizState !== 'Selecting') return
+    const idx = this.votes.findIndex((v) => v.member.id === vote.member.id)
+    if (idx >= 0) {
+      const next = this.votes.slice()
+      next[idx] = vote
+      this.votes = next
+    } else {
+      this.votes = [...this.votes, vote]
+    }
+    this.view.renderVotes(this.votes)
   }
 
   get currentQuestion(): QuizQuestion | null {
@@ -168,6 +183,8 @@ export class PlayController {
             }
           } else {
             this.questionIndex += 1
+            this.votes = []
+            this.view.renderVotes(this.votes)
             this.transition('Idle')
           }
         }

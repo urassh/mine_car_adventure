@@ -35,7 +35,7 @@ export class SceneManager implements NextSceneNavigator {
     if (current instanceof ModeSelectScene) {
       return current.chosenMode === 'multi' ? new LobbyScene() : new PlayScene()
     }
-    if (current instanceof LobbyScene) return new PlayScene()
+    if (current instanceof LobbyScene) return new PlayScene({ connection: current.connection })
     if (current instanceof PlayScene) return new ResultScene()
     if (current instanceof ResultScene) return new TitleScene()
     return new TitleScene()
