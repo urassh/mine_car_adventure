@@ -78,6 +78,7 @@ canvas {
 }
 
 .choice {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -88,12 +89,43 @@ canvas {
 }
 
 .choice-voters {
+  /* choice frame の真下に絶対配置することで、人数が増えても
+     frame の位置に影響しないようにする。 */
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
   width: min(320px, 32vw);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px 6px;
   min-height: 28px;
+  /* 約3行ぶんで上限化し、4行目以降は内部スクロールで見せる。
+     1行 ≒ 50px (avatar 28 + name 14 + gap 8) */
+  max-height: 160px;
+  overflow-y: auto;
+  /* #choices-overlay が pointer-events: none なので、ここだけ復活させてスクロール可能に */
+  pointer-events: auto;
+  /* スクロールバー細め (firefox) */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(247, 230, 196, 0.35) transparent;
+  /* iOS の慣性スクロール */
+  -webkit-overflow-scrolling: touch;
+  /* 影で「下にまだ続く」感を出す (任意) */
+  mask-image: linear-gradient(to bottom, black 0, black calc(100% - 24px), transparent 100%);
+}
+
+/* webkit (chrome/safari) のスクロールバー装飾 */
+.choice-voters::-webkit-scrollbar {
+  width: 6px;
+}
+.choice-voters::-webkit-scrollbar-track {
+  background: transparent;
+}
+.choice-voters::-webkit-scrollbar-thumb {
+  background: rgba(247, 230, 196, 0.35);
+  border-radius: 3px;
 }
 
 .choice-voters:empty {

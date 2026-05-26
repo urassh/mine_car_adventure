@@ -1,7 +1,11 @@
-import { DummyMultiConnection } from '../multi/DummyMultiConnection'
 import type { Member, MultiConnection } from '../multi/MultiConnection'
+import { WebSocketMultiConnection } from '../multi/WebSocketMultiConnection'
 import type { NextSceneNavigator } from './NextSceneNavigator'
 import { Scene } from './Scene'
+
+const DEFAULT_WS_URL =
+  (import.meta.env.VITE_SERVER_WS_URL as string | undefined) ??
+  'ws://localhost:3002/host'
 
 export class LobbyScene extends Scene {
   private overlay: HTMLDivElement | null = null
@@ -10,7 +14,9 @@ export class LobbyScene extends Scene {
   private navigator: NextSceneNavigator | null = null
   private readonly conn: MultiConnection
 
-  constructor(connection: MultiConnection = new DummyMultiConnection()) {
+  constructor(
+    connection: MultiConnection = new WebSocketMultiConnection({ url: DEFAULT_WS_URL }),
+  ) {
     super()
     this.conn = connection
   }
