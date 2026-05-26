@@ -530,6 +530,45 @@ canvas {
   letter-spacing: 0.06em;
 }
 
+.lobby-join {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 18px;
+  background: rgba(247, 230, 196, 0.06);
+  border: 1px solid rgba(247, 230, 196, 0.18);
+  border-radius: 12px;
+}
+
+.lobby-qr {
+  display: block;
+  width: 160px;
+  height: 160px;
+  background: #f7e6c4;
+  border-radius: 8px;
+}
+
+.lobby-join-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lobby-join-instr {
+  font-weight: 800;
+  font-size: clamp(16px, 1.6vw, 20px);
+  color: #f7e6c4;
+}
+
+.lobby-join-url {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: clamp(12px, 1.1vw, 14px);
+  color: #f7e6c4;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
 .lobby-members {
   list-style: none;
   margin: 0;
